@@ -30,7 +30,7 @@ export class CategoriesService {
         }
 
         if (updateCategoryDto.name && updateCategoryDto.name !== existingCategory.name) {
-            const duplicate = await this.categoryModel.findOne({name: updateCategoryDto});
+            const duplicate = await this.categoryModel.findOne({ name: updateCategoryDto.name });
             if (duplicate) {
                 throw new ConflictException('Category with tihs name already exists');
             }

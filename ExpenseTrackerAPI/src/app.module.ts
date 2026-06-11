@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/commin';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CategoriesModule } from './categories/categories.module';
 
