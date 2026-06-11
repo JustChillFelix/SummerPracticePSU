@@ -46,8 +46,6 @@ export class CategoriesService {
     }
 
     async remove(id: string): Promise<void> {
-        //const count = await this.transactionModel.countDocuments({category: id}).exec();
-        //if (count > 0) throw new ConflictException('Cannot delete category with existing transaction');
 
         const result = await this.categoryModel.findByIdAndDelete(id).exec();
         if (!result) {
