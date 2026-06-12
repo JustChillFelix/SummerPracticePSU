@@ -4,11 +4,11 @@ import { Type } from 'class-transformer';
 
 export class CreateTransactionDto {
   @IsString()
-  category: string; // ID категории придет строкой
+  category: string; 
 
   @IsNumber()
   @Min(0.01)
-  @Type(() => Number) // Превращаем строку из JSON в число
+  @Type(() => Number) 
   amount: number;
 
   @IsEnum(TransactionType)
@@ -20,5 +20,5 @@ export class CreateTransactionDto {
   description?: string;
 
   @IsDateString()
-  date: string; // Дата придет строкой ISO
+  date: string; 
 }
