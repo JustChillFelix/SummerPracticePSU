@@ -1,35 +1,45 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-    console.log('Starting application...');
+    const logger = new Logger('Bootstrap');
+    logger.log('Starting application...');
     
     try {
         const app = await NestFactory.create(AppModule);
-        console.log('Nest application created');
+        logger.log('Nest application created');
+
 
         app.useGlobalPipes(new ValidationPipe({
             whitelist: true,
+            forbidNonWhitelisted: true, 
             transform: true,
         }));
 
+
         const config = new DocumentBuilder()
             .setTitle('Expense Tracker API')
-            .setDescription('The Expense Tracker API description')
+            .setDescription('API for personal income and expense tracking')
             .setVersion('1.0')
             .build();
         
         const document = SwaggerModule.createDocument(app, config);
         SwaggerModule.setup('api', app, document);
-        console.log('Swagger setup complete');
+        logger.log('Swagger setup complete');
 
-        await app.listen(3000);
-        console.log('Application is running on: http://localhost:3000');
+
+        const port = process.env.PORT || 3000;
+        await app.listen(port);
+        logger.log(`Application is running on: http://localhost:${port}`);
+        
+        if (process.env.NODE_ENV !== 'production') {
+            logger.log(`Swagger documentation: http://localhost:${port}/api`);
+        }
     } catch (error) {
-        console.error('Application failed to start:', error);
-        throw error;
+        logger.error('Application failed to start:', error);
+        process.exit(1);
     }
 }
 

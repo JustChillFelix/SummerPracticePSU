@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, Patch } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto'; 
+import { GetCategoriesQueryDto } from './dto/get-categories-query.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -12,19 +14,21 @@ export class CategoriesController {
     }
 
     @Get()
-    findAll(
-        @Query('page', new ParseIntPipe({ optional: true })) page = 1,
-        @Query('limit', new ParseIntPipe({ optional: true })) limit = 20,
-        @Query('search') search?: string,
-        @Query('sortBy') sortBy = 'name',
-        @Query('sortOrder') sortOrder = 'asc',
-    ) {
-        return this.categoriesService.findAll(page, limit, search, sortBy, sortOrder);
+    findAll(@Query() query: GetCategoriesQueryDto) {
+        return this.categoriesService.findAll(query);
     }
 
     @Get(':id')
-    findOne(@Param('id') id:string) {
+    findOne(@Param('id') id: string) {
         return this.categoriesService.findOne(id);
+    }
+
+    @Patch(':id')
+    update(
+        @Param('id') id: string,
+        @Body() updateCategoryDto: UpdateCategoryDto
+    ) {
+        return this.categoriesService.update(id, updateCategoryDto);
     }
 
     @Delete(':id')

@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Category, CategoryDocument } from './schemas/category.schema';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { GetCategoriesQueryDto } from './dto/get-categories-query.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -23,26 +25,26 @@ export class CategoriesService {
         return await createdCategory.save();
     }
 
-    async update (id: string, updateCategoryDto: CreateCategoryDto): Promise<Category> {
-        const existingCategory = await this.categoryModel.findById(id);
-        if (existingCategory) {
+    async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+        const existingCategory = await this.categoryModel.findById(id).exec();
+        if (!existingCategory) {
             throw new NotFoundException(`Category with ID ${id} not found`);
         }
 
         if (updateCategoryDto.name && updateCategoryDto.name !== existingCategory.name) {
-            const duplicate = await this.categoryModel.findOne({ name: updateCategoryDto.name });
+            const duplicate = await this.categoryModel.findOne({ name: updateCategoryDto.name }).exec();
             if (duplicate) {
-                throw new ConflictException('Category with tihs name already exists');
+                throw new ConflictException('Category with this name already exists');
             }
         }
 
-        const updatedData = {...existingCategory.toObject(), ...updateCategoryDto};
-
-        return await this.categoryModel.findByIdAndUpdate(
+        const updatedCategory = await this.categoryModel.findByIdAndUpdate(
             id,
-            updatedData,
-            { new: true }
-        );
+            updateCategoryDto,
+            { new: true, runValidators: true }
+        ).exec();
+
+        return updatedCategory!; 
     }
 
     async remove(id: string): Promise<void> {
@@ -61,29 +63,32 @@ export class CategoriesService {
         return category;
     }
 
-    async findAll(page = 1, limit = 20, search?: string, sortBy = 'name', sortOrder = 'asc') {
+    async findAll(query: GetCategoriesQueryDto) {
+        const { 
+            page = 1, 
+            limit = 20, 
+            search, 
+            sortBy = 'name', 
+            sortOrder = 'asc' 
+        } = query;
+
         const skip = (page - 1) * limit;
         const sortOptions: any = {};
         sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-        const query: any = {};
+        const filter: any = {};
         if (search) {
-            query.name = { $regex: search, $options: 'i' };
+            filter.name = { $regex: search, $options: 'i' };
         }
 
         const [data, total] = await Promise.all([
-        this.categoryModel.find(query).sort(sortOptions).skip(skip).limit(limit).exec(),
-        this.categoryModel.countDocuments(query),
+            this.categoryModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
+            this.categoryModel.countDocuments(filter),
         ]);
 
         return {
             data,
-            meta: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-            }
+            meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
         };
     }
 }
