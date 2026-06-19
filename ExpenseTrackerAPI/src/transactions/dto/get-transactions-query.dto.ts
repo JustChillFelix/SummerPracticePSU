@@ -19,10 +19,10 @@ export class GetTransactionsQueryDto {
   @ApiPropertyOptional({ description: 'Category ID' })
   @IsOptional() @IsString() categoryId?: string;
 
-  @ApiPropertyOptional({ example: '2023-10-01T00:00:00.000Z' })
+  @ApiPropertyOptional({ example: '2025-10-01T00:00:00.000Z' })
   @IsOptional() @IsString() dateFrom?: string;
 
-  @ApiPropertyOptional({ example: '2023-10-31T23:59:59.000Z' })
+  @ApiPropertyOptional({ example: '2025-10-31T23:59:59.000Z' })
   @IsOptional() @IsString() dateTo?: string;
 
   @ApiPropertyOptional({ 
