@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CategoriesModule } from './categories/categories.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { SummaryModule } from './summary/summary.module';
+import { TagsModule } from './tags/tags.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SummaryModule } from './summary/summary.module';
     CategoriesModule,
     TransactionsModule,
     SummaryModule,
+    TagsModule,
   ],
 })
 export class AppModule {}

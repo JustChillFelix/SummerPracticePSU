@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Types, Schema as MongooseSchema } from 'mongoose';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Category } from '../../categories/schemas/category.schema';
 
 export type TransactionDocument = Transaction & Document;
@@ -42,6 +43,10 @@ export class Transaction {
     }
   })
   date: Date;
+
+  @ApiPropertyOptional({ description: 'Массив ID тегов', type: [String] })
+  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Tag' }], default: [] })
+  tags: Types.ObjectId[]; 
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

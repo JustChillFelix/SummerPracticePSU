@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './http-exception.filter';
 
 async function bootstrap() {
     const logger = new Logger('Bootstrap');
@@ -10,7 +11,8 @@ async function bootstrap() {
     try {
         const app = await NestFactory.create(AppModule);
         logger.log('Nest application created');
-
+       
+        app.useGlobalFilters(new AllExceptionsFilter());
 
         app.useGlobalPipes(new ValidationPipe({
             whitelist: true,
