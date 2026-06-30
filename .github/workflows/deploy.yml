@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ExpenseTrackerAPI
 
     steps:
     - name: Checkout code
@@ -17,7 +20,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '20' 
 
     - name: Install dependencies
       run: npm ci
@@ -29,10 +32,13 @@ jobs:
     needs: build-and-test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ExpenseTrackerAPI 
 
     steps:
-    - name: Deploy to Render
-      uses: johnbeynon/render-deploy-action@v0.0.8
-      with:
-        service-id: ${{ secrets.RENDER_SERVICE_ID }}
-        api-key: ${{ secrets.RENDER_API_KEY }}
+    - name: Checkout code 
+      uses: actions/checkout@v3
+
+    - name: Trigger Render Deploy
+      run: curl "${{ secrets.RENDER_DEPLOY_HOOK }}"
