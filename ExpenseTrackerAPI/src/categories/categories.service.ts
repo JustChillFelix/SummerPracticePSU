@@ -63,32 +63,24 @@ export class CategoriesService {
         return category;
     }
 
-    async findAll(query: GetCategoriesQueryDto) {
-        const { 
-            page = 1, 
-            limit = 20, 
-            search, 
-            sortBy = 'name', 
-            sortOrder = 'asc' 
-        } = query;
+async findAll(query: GetCategoriesQueryDto) {
+  const { page = 1, limit = 20, search, sortBy = 'name', sortOrder = 'asc' } = query;
+  const skip = (page - 1) * limit;
+  
+  const filter: Record<string, any> = {}; 
+  
+  if (search) {
+    filter.name = { $regex: search, $options: 'i' };
+  }
 
-        const skip = (page - 1) * limit;
-        const sortOptions: any = {};
-        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  const sortOptions: Record<string, 1 | -1> = {};
+  sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
-        const filter: any = {};
-        if (search) {
-            filter.name = { $regex: search, $options: 'i' };
-        }
+  const [data, total] = await Promise.all([
+    this.categoryModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
+    this.categoryModel.countDocuments(filter),
+  ]);
 
-        const [data, total] = await Promise.all([
-            this.categoryModel.find(filter).sort(sortOptions).skip(skip).limit(limit).exec(),
-            this.categoryModel.countDocuments(filter),
-        ]);
-
-        return {
-            data,
-            meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
-        };
-    }
+  return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+}
 }

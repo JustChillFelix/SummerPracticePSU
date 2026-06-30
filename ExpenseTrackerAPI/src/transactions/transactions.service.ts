@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Transaction, TransactionDocument } from './schemas/transaction.schema';
+import { Transaction, TransactionDocument, TransactionType } from './schemas/transaction.schema';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { GetTransactionsQueryDto } from './dto/get-transactions-query.dto';
 import { CategoriesService } from '../categories/categories.service';
@@ -19,14 +19,11 @@ export class TransactionsService {
   private async validateTags(tagIds: string[]) {
     if (!tagIds || tagIds.length === 0) return;
 
-    for (const tagId of tagIds) {
-      await this.tagsService.findOne(tagId); 
-    }
+    await Promise.all(tagIds.map(tagId => this.tagsService.findOne(tagId)));
   }
 
   async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
     await this.categoriesService.findOne(createTransactionDto.category);
-    
     await this.validateTags(createTransactionDto.tags);
 
     const createdTransaction = new this.transactionModel(createTransactionDto);
@@ -36,7 +33,8 @@ export class TransactionsService {
   async findAll(query: GetTransactionsQueryDto) {
     const { page = 1, limit = 20, search, type, categoryId, dateFrom, dateTo, tags, sortBy = 'date', sortOrder = 'desc' } = query;
     const skip = (page - 1) * limit;
-    const filter: any = {};
+    
+    const filter: Record<string, any> = {};
 
     if (type) filter.type = type;
     if (categoryId) filter.category = new Types.ObjectId(categoryId);
@@ -52,10 +50,9 @@ export class TransactionsService {
     if (tags && tags.length > 0) {
       const tagObjectIds = tags.map(tagId => new Types.ObjectId(tagId));
       filter.tags = { $in: tagObjectIds };
-      
     }
 
-    const sortOptions: any = {};
+    const sortOptions: Record<string, 1 | -1> = {};
     sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
     const [data, total] = await Promise.all([
@@ -70,7 +67,7 @@ export class TransactionsService {
     const transaction = await this.transactionModel
       .findById(id)
       .populate('category')
-      .populate('tags') 
+      .populate('tags')
       .exec();
     
     if (!transaction) {
@@ -80,14 +77,12 @@ export class TransactionsService {
   }
 
   async update(id: string, updateDto: UpdateTransactionDto) {
+
     if (updateDto.category) {
-      const categoryExists = await this.categoriesService.findOne(updateDto.category);
-      if (!categoryExists) {
-        throw new NotFoundException(`Category with ID ${updateDto.category} not found`);
-      }
+      await this.categoriesService.findOne(updateDto.category);
     }
 
-      if (updateDto.tags) {
+    if (updateDto.tags) {
       await this.validateTags(updateDto.tags);
     }
 
